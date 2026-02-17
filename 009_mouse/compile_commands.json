@@ -1,0 +1,14 @@
+[
+  {
+    "file": "main.cpp",
+    "arguments": [
+      "clang++",
+      "-o",
+      "main",
+      "main.cpp",
+      "-I/usr/local/include"
+    ],
+    "directory": "/Users/jay/Desktop/gui/sdl3-tutorial/009_mouse",
+    "output": "main"
+  }
+]
