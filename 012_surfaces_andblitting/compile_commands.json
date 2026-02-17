@@ -1,0 +1,16 @@
+[
+  {
+    "file": "main.cpp",
+    "arguments": [
+      "clang++",
+      "-g",
+      "-o",
+      "main",
+      "main.cpp",
+      "-I/usr/local/include",
+      "-Wno-unused-includes"
+    ],
+    "directory": "/Users/jay/Desktop/gui/sdl3-tutorial/012_surfaces_andblitting",
+    "output": "main"
+  }
+]

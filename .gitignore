@@ -1,3 +1,6 @@
 **/main
 **/.cache
 **/*.dSYM/
+**/*.bmp
+**/*.jpg
+.DS_Store

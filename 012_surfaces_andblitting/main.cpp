@@ -1,17 +1,28 @@
 #include <SDL3/SDL.h>
 #include <iostream>
+#include <cassert>
 
-using namespace std;
+#define WINW 1024
+#define WINH 2000
 
 struct SDLApplication {
   SDL_Window *mWindow;
   bool mRunning = true;
 
+  SDL_Surface *mSurface;
+
   // Constructor
   SDLApplication(const char *title) {
     SDL_Init(SDL_INIT_VIDEO);
-    mWindow = SDL_CreateWindow(title, 320, 240, SDL_WINDOW_RESIZABLE);
+    mWindow = SDL_CreateWindow(title, WINW, WINH, SDL_WINDOW_RESIZABLE);
     SDL_RaiseWindow(mWindow);
+
+    mSurface = SDL_LoadBMP("./test.bmp");
+    if (mSurface == nullptr) {
+        assert(0 && "Improper file path found.");
+    }
+
+    // blit -> bit block transfer (transfer rectangular block of pixel from one memory to another memory location)
   }
 
   // Destructor
@@ -68,6 +79,11 @@ struct SDLApplication {
   }
 
   void Render() {
+    SDL_Surface *windowSurface = SDL_GetWindowSurface(mWindow);
+    if (nullptr != windowSurface) {
+      SDL_BlitSurface(mSurface , nullptr, windowSurface, nullptr);
+      SDL_UpdateWindowSurface(mWindow);
+    }
   }
 
   // Main application loop

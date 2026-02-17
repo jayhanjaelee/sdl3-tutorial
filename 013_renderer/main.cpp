@@ -1,17 +1,45 @@
 #include <SDL3/SDL.h>
+#include <cassert>
 #include <iostream>
 
-using namespace std;
+#define WINW 320
+#define WINH 240
 
 struct SDLApplication {
   SDL_Window *mWindow;
+  SDL_Renderer *mRenderer;
   bool mRunning = true;
+
+  SDL_Surface *mSurface;
 
   // Constructor
   SDLApplication(const char *title) {
     SDL_Init(SDL_INIT_VIDEO);
-    mWindow = SDL_CreateWindow(title, 320, 240, SDL_WINDOW_RESIZABLE);
+    mWindow = SDL_CreateWindow(title, WINW, WINH, SDL_WINDOW_RESIZABLE);
+    mRenderer = SDL_CreateRenderer(mWindow , nullptr); // OpenGL DirectX, Vulkan, Metal Support
+    if (mRenderer == nullptr) {
+      assert(0 && "Not able to create HW accelerated renderer");
+    } else {
+      SDL_Log("Renderer %s", SDL_GetRendererName(mRenderer)); // metal
+      // Log drivers that are available, in the order of priority SDL chooses them.
+      // Useful for e.g. debugging which ones a particular build of SDL contains.
+      /*
+      SDL_Log("Available renderer drivers:");
+      for (int i = 0; i < SDL_GetNumRenderDrivers(); i++) {
+        SDL_Log("%d. %s", i + 1, SDL_GetRenderDriver(i));
+      }
+      */
+    }
     SDL_RaiseWindow(mWindow);
+
+    /*
+    mSurface = SDL_LoadBMP("./test.bmp");
+    if (mSurface == nullptr) {
+        assert(0 && "Improper file path found.");
+    }
+    */
+
+    // blit -> bit block transfer (transfer rectangular block of pixel from one memory to another memory location)
   }
 
   // Destructor
@@ -45,11 +73,15 @@ struct SDLApplication {
       else if(event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
         if(event.button.button == SDL_BUTTON_LEFT){
           SDL_Log("Left Button:%d", event.button.button);
+          SDL_SetRenderDrawColor(mRenderer, 0xFF, 0x00, 0x00, 0xFF);
+          SDL_RenderClear(mRenderer);
         }
         if(event.button.button == SDL_BUTTON_MIDDLE){
           SDL_Log("Middle Button:%d", event.button.button);
         }
         if(event.button.button == SDL_BUTTON_RIGHT){
+          SDL_SetRenderDrawColor(mRenderer, 0x00, 0xFF, 0x00, 0xFF);
+          SDL_RenderClear(mRenderer);
           SDL_Log("Right Button:%d", event.button.button);
         }
         SDL_Log("Clicks: %d", event.button.clicks);
@@ -68,6 +100,16 @@ struct SDLApplication {
   }
 
   void Render() {
+    SDL_SetRenderDrawColor(mRenderer, 0x00, 0xAA, 0xFF, 0xFF);
+    SDL_RenderClear(mRenderer);
+    SDL_RenderPresent(mRenderer);
+    /*
+       SDL_Surface *windowSurface = SDL_GetWindowSurface(mWindow);
+       if (nullptr != windowSurface) {
+       SDL_BlitSurface(mSurface , nullptr, windowSurface, nullptr);
+       SDL_UpdateWindowSurface(mWindow);
+       }
+       */
   }
 
   // Main application loop
