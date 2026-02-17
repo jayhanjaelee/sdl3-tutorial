@@ -1,0 +1,15 @@
+[
+  {
+    "file": "main.cpp",
+    "arguments": [
+      "clang++",
+      "-g",
+      "-o",
+      "main",
+      "main.cpp",
+      "-I/usr/local/include"
+    ],
+    "directory": "/Users/jay/Desktop/gui/sdl3-tutorial/011_game_loop_frame_rate",
+    "output": "main"
+  }
+]
