@@ -4,3 +4,4 @@
 **/*.bmp
 **/*.jpg
 .DS_Store
+!**/character.bmp

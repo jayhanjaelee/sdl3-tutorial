@@ -1,52 +1,19 @@
 #include <SDL3/SDL.h>
 #include <cassert>
-#include <vector>
+#include <iostream>
 
 #define WINW 320
 #define WINH 240
 
-struct Particles {
-
-  struct Particle{
-    float speed;
-    float velocity;
-    void Randomize(){
-      speed = 1.0f + static_cast<float>(SDL_rand(10));
-      velocity = 1.0f + static_cast<float>(SDL_rand(180)) - 120;
-    }
-  };
-
-  std::vector<SDL_FPoint> mPoints;
-  std::vector<Particle> mParticles;
-
-  Particles(){
-    // std::cout << "default constructor was called." << std::endl;
-  }
-
-  Particles(size_t numberOfPointers){
-    // std::cout << "constructor with argument was called." << std::endl;
-    for(int i=0; i<numberOfPointers; i++){
-      Particle particle;
-      particle.Randomize();
-
-      SDL_FPoint point = SDL_FPoint{
-        .x = static_cast<float>(SDL_rand(320)),
-          .y = static_cast<float>(SDL_rand(10))
-      };
-
-      mParticles.push_back(particle);
-      mPoints.push_back(point);
-    }
-  }
-};
-
 struct SDLApplication {
   SDL_Window *mWindow;
   SDL_Renderer *mRenderer;
-  bool mRunning = true;
-  Particles mParticlesSystem{1000};
 
-  SDL_Surface *mSurface;
+  // For my application indefinitely
+  bool mRunning = true;
+  bool mFullScreen = true;
+
+  SDL_Texture *mTexture;
 
   // Constructor
   SDLApplication(const char *title) {
@@ -59,6 +26,9 @@ struct SDLApplication {
       SDL_Log("Renderer %s", SDL_GetRendererName(mRenderer)); // metal
                                                               // Log drivers that are available, in the order of priority SDL chooses them.
                                                               // Useful for e.g. debugging which ones a particular build of SDL contains.
+      SDL_SetRenderLogicalPresentation(mRenderer, 320, 240, SDL_LOGICAL_PRESENTATION_STRETCH);
+      // SDL_SetRenderLogicalPresentation(mRenderer, 320, 240, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+      // SDL_SetRenderLogicalPresentation(mRenderer, 320, 240, SDL_LOGICAL_PRESENTATION_INTEGER_SCALE);
       /*
          SDL_Log("Available renderer drivers:");
          for (int i = 0; i < SDL_GetNumRenderDrivers(); i++) {
@@ -68,6 +38,8 @@ struct SDLApplication {
     }
     SDL_RaiseWindow(mWindow);
 
+    SDL_Surface *mSurface = SDL_LoadBMP("./character.bmp");
+    mTexture = SDL_CreateTextureFromSurface(mRenderer, mSurface);
     /*
        mSurface = SDL_LoadBMP("./test.bmp");
        if (mSurface == nullptr) {
@@ -80,6 +52,9 @@ struct SDLApplication {
 
   // Destructor
   ~SDLApplication() {
+    SDL_DestroyTexture(mTexture);
+    SDL_DestroyRenderer(mRenderer);
+    SDL_DestroyWindow(mWindow);
     SDL_Quit();
   }
 
@@ -105,6 +80,11 @@ struct SDLApplication {
       }
       else if(event.type == SDL_EVENT_KEY_DOWN){
         SDL_Log("a key was pressed: %d", event.key.key);
+        if((event.key.key == SDLK_LGUI) && (event.key.key == SDLK_F)){
+          SDL_Log("command+f was pressed");
+          mFullScreen = !mFullScreen;
+          SDL_SetWindowFullscreen(mWindow, mFullScreen);
+        }
       }
       else if(event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
         if(event.button.button == SDL_BUTTON_LEFT){
@@ -133,35 +113,21 @@ struct SDLApplication {
   }
 
   void Update() {
-    for(int i=0; i< mParticlesSystem.mParticles.size(); i++){
-      mParticlesSystem.mPoints[i].y += mParticlesSystem.mParticles[i].speed * .2f;
-      mParticlesSystem.mPoints[i].y += SDL_sinf(mParticlesSystem.mParticles[i].velocity) * 0.5;
-      mParticlesSystem.mParticles[i].velocity+=0.1f;
-      if(mParticlesSystem.mPoints[i].y > 240){
-        mParticlesSystem.mPoints[i].y = -120;
-        mParticlesSystem.mParticles[i].Randomize();
-      }
-    }
   }
 
   void Render()
   {
-    SDL_SetRenderDrawColor(mRenderer, 0x00, 0xAA, 0xFF, 0xFF);
+    SDL_SetRenderDrawColor(mRenderer, 0x00, 0x00, 0x00, 0xFF);
     SDL_RenderClear(mRenderer);
 
-    SDL_SetRenderDrawColor(mRenderer, 0xFF, 0x00, 0x00, 0x00);
-    SDL_RenderLine(mRenderer, 0, (float)WINH/2, WINW, (float)WINH/2);
-
-    SDL_SetRenderDrawColor(mRenderer, 0x00, 0x00, 0x00, 0x00);
-    SDL_FRect rect{
-      .x = 100,
-        .y = 50,
-        .w = 100,
-        .h = 100
+    static SDL_FRect dst_rect{
+      .x = 50,
+      .y = 50,
+      .w = 16,
+      .h = 16
     };
-
-    SDL_RenderPoints(mRenderer, mParticlesSystem.mPoints.data(), mParticlesSystem.mParticles.size());
-    SDL_RenderRect(mRenderer, &rect);
+    dst_rect.x += .1f;
+    SDL_RenderTexture(mRenderer, mTexture, nullptr, &dst_rect);
 
     SDL_RenderPresent(mRenderer);
     /*
